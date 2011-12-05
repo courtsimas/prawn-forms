@@ -2,6 +2,7 @@ PRAWN_FORMS_VERSION = "0.1.1"
 
 Gem::Specification.new do |spec|
   spec.name = "prawn-forms"
+  spec.author = ['James Healy']
   spec.version = PRAWN_FORMS_VERSION
   spec.platform = Gem::Platform::RUBY
   spec.summary = "A fast and nimble PDF generator for Ruby"

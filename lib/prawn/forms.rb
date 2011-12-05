@@ -20,10 +20,13 @@ module Prawn
     end
 
     def text_field(name, x, y, w, h, opts = {})
+      opts[:font_size] = "12" if opts[:font_size].nil?
+      opts[:text_color] = "0 0 0" if opts[:text_color].nil?
+      
       x, y = map_to_absolute(x, y)
 
       field_dict = {:T => Prawn::Core::LiteralString.new(name),
-                    :DA => Prawn::Core::LiteralString.new("/Helv 0 Tf 0 g"),
+                    :DA => Prawn::Core::LiteralString.new("/Helv #{opts[:font_size]} Tf #{opts[:text_color]} rg"),
                     :F => 4,
                     :Ff => flags_from_options(opts),
                     :BS => {:Type => :Border, :W => 1, :S => :S},
@@ -31,7 +34,9 @@ module Prawn
                     :Rect => [x, y, x + w, y - h]}
 
       if opts[:default]
-        field_dict[:V] = Prawn::Core::LiteralString.new(opts[:default])
+        # field_dict[:V] = Prawn::Core::LiteralString.new(opts[:default])  ##escaping new lines -- cdm
+        field_dict[:V] = opts[:default]
+        
       end
 
       add_interactive_field(:Tx, field_dict)
