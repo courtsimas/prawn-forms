@@ -28,8 +28,12 @@ module Prawn
                     :F => 4,
                     :Ff => flags_from_options(opts),
                     :BS => {:Type => :Border, :W => 1, :S => :S},
-                    :MK => {:BC => [0, 0, 0]},
+                    :MK => {},
                     :Rect => [x, y, x + w, y + h]}
+
+      if opts.fetch(:border, true)
+        field_dict[:MK] = {:BC => [0, 0, 0]}
+      end
 
       if opts[:default]
         # Set the field's default text
