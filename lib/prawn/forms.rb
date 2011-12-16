@@ -23,7 +23,8 @@ module Prawn
       x, y = map_to_absolute(x, y)
 
       field_dict = {:T => Prawn::Core::LiteralString.new(name),
-                    :DA => Prawn::Core::LiteralString.new("/Helv 0 Tf 0 g"),
+                    :DA => Prawn::Core::LiteralString.new(
+                      "/Helv #{font_size} Tf 0 g"),
                     :F => 4,
                     :Ff => flags_from_options(opts),
                     :BS => {:Type => :Border, :W => 1, :S => :S},
