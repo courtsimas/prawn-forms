@@ -31,7 +31,20 @@ module Prawn
                     :Rect => [x, y, x + w, y + h]}
 
       if opts[:default]
-        field_dict[:V] = Prawn::Core::LiteralString.new(opts[:default])
+        # Set the field's default text
+        default = Prawn::Core::LiteralString.new(opts[:default])
+        field_dict[:V] = field_dict[:DV] = default
+
+        # Merge in the appearance stream fields, so the field shows the default
+        # text when not selected. Per PDF32000_2008 12.7.1 (Interactive Forms:
+        # General), the widget annotation for an appearance stream may be
+        # merged into the field dictionary itself rather than appending it as a
+        # child.
+        field_dict.merge!(
+          :Type => :Annot,
+          :Subtype => :Widget,
+          :AP => text_field_appearance_stream(opts[:default], w, h),
+          :P => state.page.dictionary)
       end
 
       add_interactive_field(:Tx, field_dict)
@@ -65,6 +78,55 @@ module Prawn
                   :BaseFont => :Helvetica,
                   :Encoding => :WinAnsiEncoding)
       ref!(:Font => {:Helv => helv})
+    end
+
+    # Return a ref to a Form XObject containing the appearance stream for
+    # a text field.
+    #
+    def text_field_appearance_stream(default_text, w, h)
+      # Padding to make the appearance stream line up with the text box once
+      # activated. Determined through experiment (Adobe Acrobat Pro 10.1.1,
+      # OS X).
+      pad_x, pad_y = -2, 7
+
+      # Add the default text to the appearance stream. We lean on text_box to
+      # provide wrapping, but we have to provide a custom callback to ensure
+      # the font resources and stream are embedded in the form XObject, not
+      # the page's content stream.
+      #
+      stream = "/Tx BMC q BT\n"
+      font_refs = {}
+      x, y = pad_x, bounds.height - h + pad_y
+      text_box(default_text,
+        :width => w - 4, # account for padding
+        :height => h,
+        :draw_text_callback => lambda { |text, options|
+          new_x, new_y = options[:at]
+          dx, dy = new_x - x, new_y - y
+          x, y = new_x, new_y
+          stream << "#{dx} #{dy} Td\n"
+
+          font.encode_text(text).each do |subset, string|
+            font_refs[font.identifier_for(subset)] = font.send(:register, subset)
+            op = options[:kerning] && text.is_a?(Array) ? "TJ" : "Tj"
+            stream << "/#{font.identifier_for(subset)} #{font_size} Tf\n" <<
+              Prawn::Core::PdfObject(text, true) << " #{op}\n"
+          end
+        })
+      stream << "ET Q EMC\n"
+
+      normal = ref!(:Type => :XObject,
+                    :Subtype => :Form,
+                    :Matrix => [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                    :FormType => 1,
+                    :BBox => [0.0, 0.0, w, h],
+                    :Length => stream.length,
+                    :Resources => {
+                      :ProcSet => [:PDF, :Text],
+                      :Font => font_refs})
+      normal << stream
+
+      {:N => normal}
     end
 
     # Returns the integer value for the /Ff (flags) entry in the field
