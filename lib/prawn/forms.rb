@@ -30,7 +30,7 @@ module Prawn
                     :Ff => flags_from_options(opts),
                     :BS => {:Type => :Border, :W => 1, :S => :S},
                     :MK => {},
-                    :Rect => [x, y, x + w, y + h]}
+                    :Rect => [x, y, x + w, y - h]}
 
       if border
         field_dict[:MK] = {:BC => [0, 0, 0]}
