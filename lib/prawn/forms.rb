@@ -21,6 +21,7 @@ module Prawn
 
     def text_field(name, x, y, w, h, opts = {})
       x, y = map_to_absolute(x, y)
+      border = opts.fetch(:border, true)
 
       field_dict = {:T => Prawn::Core::LiteralString.new(name),
                     :DA => Prawn::Core::LiteralString.new(
@@ -31,7 +32,7 @@ module Prawn
                     :MK => {},
                     :Rect => [x, y, x + w, y + h]}
 
-      if opts.fetch(:border, true)
+      if border
         field_dict[:MK] = {:BC => [0, 0, 0]}
       end
 
@@ -48,7 +49,7 @@ module Prawn
         field_dict.merge!(
           :Type => :Annot,
           :Subtype => :Widget,
-          :AP => text_field_appearance_stream(opts[:default], w, h),
+          :AP => text_field_appearance_stream(opts[:default], w, h, border),
           :P => state.page.dictionary)
       end
 
@@ -88,7 +89,7 @@ module Prawn
     # Return a ref to a Form XObject containing the appearance stream for
     # a text field.
     #
-    def text_field_appearance_stream(default_text, w, h)
+    def text_field_appearance_stream(default_text, w, h, border)
       # Padding to make the appearance stream line up with the text box once
       # activated. Determined through experiment (Adobe Acrobat Pro 10.1.1,
       # OS X).
@@ -99,7 +100,23 @@ module Prawn
       # the font resources and stream are embedded in the form XObject, not
       # the page's content stream.
       #
-      stream = "/Tx BMC q BT\n"
+      stream = "/Tx BMC q\n"
+
+      # If there is a border, we must include it in the appearance stream,
+      # otherwise it won't show up in the default state.
+      if border
+        # Fudge the borders so they stay inside the box. This appears to be
+        # necessary, from examining Acrobat's output.
+        # Example:
+        #   /BBox[0.0 0.0 149.999 22.0]
+        # vs.
+        #   0.5 0.5 148.9995 21 re s
+        box = [0.5, 0.5, w-1, h-1]
+        stream << "#{box.map{ |x| Prawn::Core::PdfObject(x)}.join(" ")} re S\n"
+      end
+
+      stream << "BT\n"
+
       font_refs = {}
       x, y = pad_x, bounds.height - h + pad_y
       text_box(default_text,
