@@ -49,7 +49,7 @@ module Prawn
         field_dict.merge!(
           :Type => :Annot,
           :Subtype => :Widget,
-          :AP => text_field_appearance_stream(opts[:default], w, h, border),
+          :AP => text_field_appearance_stream(opts[:default].gsub("NEWLINE", "\012"), w, h, border),
           :P => state.page.dictionary)
       end
 
