@@ -30,7 +30,7 @@ module Prawn
                     :Ff => flags_from_options(opts),
                     :BS => {:Type => :Border, :W => 1, :S => :S},
                     :MK => {},
-                    :Rect => [x, y, x + w, y - h]}
+                    :Rect => [x, y + 4, x + w, y - h + 4]}
 
       if border
         field_dict[:MK] = {:BC => [0, 0, 0]}
@@ -93,7 +93,7 @@ module Prawn
       # Padding to make the appearance stream line up with the text box once
       # activated. Determined through experiment (Adobe Acrobat Pro 10.1.1,
       # OS X).
-      pad_x, pad_y = -2, 7
+      pad_x, pad_y = -2, 4
 
       # Add the default text to the appearance stream. We lean on text_box to
       # provide wrapping, but we have to provide a custom callback to ensure
