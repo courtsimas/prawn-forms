@@ -53,6 +53,13 @@ module Prawn
           :P => state.page.dictionary)
       end
 
+      case opts[:align]
+      when :center
+        field_dict.merge!(:Q => 1)
+      when :right
+        field_dict.merge!(:Q => 2)
+      end
+
       add_interactive_field(:Tx, field_dict)
     end
 
