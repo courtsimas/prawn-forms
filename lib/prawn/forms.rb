@@ -49,7 +49,8 @@ module Prawn
         field_dict.merge!(
           :Type => :Annot,
           :Subtype => :Widget,
-          :AP => text_field_appearance_stream(opts[:default], w, h, border),
+          :AP => text_field_appearance_stream(opts[:default], w, h, border,
+                                              opts[:align]),
           :P => state.page.dictionary)
       end
 
@@ -96,7 +97,7 @@ module Prawn
     # Return a ref to a Form XObject containing the appearance stream for
     # a text field.
     #
-    def text_field_appearance_stream(default_text, w, h, border)
+    def text_field_appearance_stream(default_text, w, h, border, align)
       # Padding to make the appearance stream line up with the text box once
       # activated. Determined through experiment (Adobe Acrobat Pro 10.1.1,
       # OS X).
@@ -129,6 +130,7 @@ module Prawn
       text_box(default_text,
         :width => w - 4, # account for padding
         :height => h,
+        :align => align || :left,
         :draw_text_callback => lambda { |text, options|
           new_x, new_y = options[:at]
           dx, dy = new_x - x, new_y - y
